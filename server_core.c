@@ -3,128 +3,161 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <sys/socket.h>
-#include <arpa/inet.h> //inet_addr
-#include <unistd.h>    //write
+#include <arpa/inet.h>
+#include <unistd.h>
 
 #include "commands.h"
 
-int initialize_socket(int port)
+    int
+initialize_socket (int port)
 {
     int socket_desc;
     struct sockaddr_in server;
 
-    //Create socket
-    socket_desc = socket(AF_INET , SOCK_STREAM , 0);
+    socket_desc = socket (AF_INET, SOCK_STREAM, 0);
     if (socket_desc == -1)
     {
-        perror("Could not create socket");
-        exit(1);
+        perror ("Could not create socket");
+        exit (1);
     }
 
-    //Prepare the sockaddr_in structure
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons( port );
+    server.sin_port = htons (port);
 
-    //Bind
-    if( bind(socket_desc,(struct sockaddr *)&server , sizeof(server)) < 0)
+    if (bind (socket_desc, (struct sockaddr *) &server, sizeof (server)) < 0)
     {
-        perror("bind failed");
-        exit(1);
+        perror ("bind failed");
+        exit (1);
     }
-    puts("bind done");
+    printf ("bind done. port: %d\n", port);
 
     return socket_desc;
 }
 
-void parse(char *message, int maxlen)
+    void
+parse (char *message, int maxlen, struct state *s_state)
 {
-    int command = 0;
+    int command = 0, command_length;
+    int param_pos;
     int pos = 0;
 
-    char **parameters;
+    char *parameters;
 
-    struct state s_state;
-    s_state.socket = 1;
+    while (isspace (message[pos]) && pos < maxlen)
+    {
+        pos += 1;
+        command += 1;
+    }
 
-    while(pos < maxlen) {
-        while(isalpha(message[pos]))
+    while (isalpha (message[pos]))
+    {
+        message[pos] = tolower (message[pos]);
+        pos += +1;
+    }
+    command_length = pos - command;
+
+    param_pos = pos;
+    while (isspace(message[pos]) && pos < maxlen)
+    {
+        pos += 1;
+        param_pos += 1;
+    }
+
+    /*
+    while (pos < maxlen)
+    {
+        printf ("Length of command: %d\n", command);
+
+        while (isspace (message[pos]) && pos < maxlen)
         {
-            message[pos] = tolower(message[pos]);
-            pos = pos + 1;
-            command += 1;
+            param_pos += 1;
+            pos += 1;
         }
 
-        printf("Length of command: %d\n", command);
-
-        pos += 1;
         if (message[pos] == 0)
         {
             break;
         }
     }
+    */
 
-    int i;
-    for (i = 0; i < sizeof(commands)/sizeof(commands[0]); i++)
+    parameters = message + param_pos;
+    printf ("Parameters (%d + %d): \"%s\"", command, param_pos, parameters);
+    for (int i = 0; i < sizeof (commands) / sizeof (commands[0]); i++)
     {
-        if (strncmp(message, commands[i].name, strlen(commands[i].name)) == 0)
+        int len = strlen(commands[i].name);
+        if (command + len >= maxlen) continue;
+
+        if (strncmp (message + command, commands[i].name, len) == 0)
         {
-            commands[i].function(parameters, &s_state);
+            commands[i].function (parameters, s_state);
         }
     }
 }
 
-int main(int argc , char *argv[])
+    int
+main (int argc, char *argv[])
 {
     int socket_desc, new_socket, c;
     struct sockaddr_in client;
+    int listening_port = 8888;
 
-    socket_desc = initialize_socket(8888);
-
-    //Listen
-    listen(socket_desc , 3);
-
-    //Accept and incoming connection
-    puts("Waiting for incoming connections...");
-    c = sizeof(struct sockaddr_in);
-    new_socket = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c);
-    if (new_socket<0)
+    if (argc > 1)
     {
-        perror("accept failed");
-        exit(1);
+        listening_port = strtol (argv[1], NULL, 10);
     }
 
-    puts("Connection accepted");
+    socket_desc = initialize_socket (listening_port);
 
-    char *client_ip = inet_ntoa(client.sin_addr);
-    int client_port = ntohs(client.sin_port);
+    listen (socket_desc, 3);
+
+    puts ("Waiting for incoming connections...");
+    c = sizeof (struct sockaddr_in);
+    new_socket =
+        accept (socket_desc, (struct sockaddr *) &client, (socklen_t *) & c);
+    if (new_socket < 0)
+    {
+        perror ("accept failed");
+        exit (1);
+    }
+
+    puts ("Connection accepted");
+
+    char *client_ip = inet_ntoa (client.sin_addr);
+    int client_port = ntohs (client.sin_port);
     char msg_buf[1024];
 
-    sprintf(msg_buf, "Hello %s:%d\n", client_ip, client_port);
+    sprintf (msg_buf, "Hello %s:%d\n", client_ip, client_port);
 
-    write(new_socket , msg_buf , strlen(msg_buf));
+    write (new_socket, msg_buf, strlen (msg_buf));
 
     int connected = 1;
     char buffer[256];
 
-    while(connected)
+    struct state s_state;
+    s_state.server_socket = socket_desc;
+    s_state.client_socket = new_socket;
+
+    while (connected)
     {
-        memset(buffer, 0, 256);
-        int n = read(new_socket, buffer, 255);
+        memset (buffer, 0, 256);
+        int n = read (new_socket, buffer, 255);
 
         if (n < 0)
         {
-            perror("error reading from socket");
+            perror ("error reading from socket");
         }
 
-        printf("Länge: %d\n", strlen(buffer));
-        printf("\"%s\"", buffer);
-        fflush(stdout);
+        printf ("Länge: %d\n", strlen (buffer));
+        printf ("\"%s\"\n", buffer);
+        fflush (stdout);
 
-        parse(buffer, 256);
+        parse (buffer, 256, &s_state);
 
-        sprintf(msg_buf, "Hey %s:%d I received your message\n", client_ip, client_port);
-        write(new_socket , msg_buf , strlen(msg_buf));
+        sprintf (msg_buf, "Hey %s:%d I received your message\n", client_ip,
+                client_port);
+        write (new_socket, msg_buf, strlen (msg_buf));
     }
 
     return 0;

@@ -4,20 +4,21 @@
 
 struct state
 {
-    int socket;
+    int client_socket;
+    int server_socket;
 };
 
 
-void ftp_user(char **, struct state *);
-void ftp_pass(char **, struct state *);
-void ftp_acct(char **, struct state *);
-void ftp_cwd(char **, struct state *);
-void ftp_cdup(char **, struct state *);
-void ftp_smnt(char **, struct state *);
-void ftp_rein(char **, struct state *);
-void ftp_quit(char **, struct state *);
+void ftp_user(char *, struct state *);
+void ftp_pass(char *, struct state *);
+void ftp_acct(char *, struct state *);
+void ftp_cwd(char *, struct state *);
+void ftp_cdup(char *, struct state *);
+void ftp_smnt(char *, struct state *);
+void ftp_rein(char *, struct state *);
+void ftp_quit(char *, struct state *);
 
-typedef void (*command_function) (char **, struct state*);
+typedef void (*command_function) (char *, struct state*);
 
 struct command_to_function
 {
