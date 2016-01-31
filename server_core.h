@@ -8,12 +8,10 @@ struct state
     int client_socket;
     int server_socket;
     int passive_socket;
+    int active_socket;
 
     char *username;
     char *password;
-
-    struct sockaddr_in server;
-    struct sockaddr_in client;
 
     char *current_dir;
 };
@@ -35,6 +33,7 @@ struct port
 void initialize(struct state *s_state);
 void destroy(struct state *s_state);
 
+int initialize_socket (int port);
 int answer(struct state *s_state, int status_code, const char* message);
 
 #endif

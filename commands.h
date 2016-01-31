@@ -16,6 +16,8 @@ void ftp_rein(char *, struct state *);
 void ftp_syst(char *, struct state *);
 void ftp_quit(char *, struct state *);
 void ftp_pasv(char *, struct state *);
+void ftp_port(char *, struct state *);
+void ftp_list(char *, struct state *);
 void ftp_debug(char *, struct state *);
 
 typedef void (*command_function) (char *, struct state*);
@@ -38,6 +40,8 @@ static const struct command_to_function commands[] =
     {&ftp_syst, "syst"},
     {&ftp_quit, "quit"},
     {&ftp_pasv, "pasv"},
+    {&ftp_port, "port"},
+    {&ftp_list, "list"},
     {&ftp_debug, "debug"}
 };
 

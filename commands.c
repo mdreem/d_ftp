@@ -87,6 +87,24 @@ void ftp_cdup(char *parameters, struct state *s_state)
     answer(s_state, NOT_IMPLEMENTED, "cdup not implemented yet.");
 }
 
+void ftp_list(char *parameters, struct state *s_state)
+{
+    char *buffer = "lalalalalaala\n";
+    char *fin_buffer = "250 Fertig\n";
+    answer(s_state, FILE_STATUS_OKAY, "Okay...");
+    //answer(s_state, DATA_CONNECTION_ALREADY_OPEN, "Starting...");
+
+    write (s_state->active_socket, buffer, strlen (buffer));
+    write (s_state->active_socket, fin_buffer, strlen (fin_buffer));
+    //write (s_state->client_socket, buffer, strlen (buffer));
+
+
+    //answer(s_state, REQUESTED_FILE_ACTION_OKAY, "Finished.");
+    answer(s_state, CLOSING_DATA_CONNECTION, "Finished.");
+
+    close(s_state->active_socket);
+}
+
 void ftp_smnt(char *parameters, struct state *s_state)
 {
     answer(s_state, NOT_IMPLEMENTED, "smnt not implemented yet.");
@@ -100,6 +118,41 @@ void ftp_rein(char *parameters, struct state *s_state)
 void ftp_syst(char *parameters, struct state *s_state)
 {
     answer(s_state, SYSTEM_TYPE, "Linux");
+}
+
+void ftp_port(char *parameters, struct state *s_state)
+{
+    printf("==PORT==\n");
+    printf("Port: %s\n", parameters);
+
+    struct ip ip;
+    struct port port;
+
+    close(s_state->active_socket);
+
+    sscanf(parameters, "%d,%d,%d,%d,%d,%d", &ip.d1, &ip.d2, &ip.d3, &ip.d4, &port.d1, &port.d2);
+
+    int ip_i, port_i;
+    memcpy(&ip_i, &ip, sizeof(int));
+    // TODO: Risky if int not zeroed?
+    memcpy(&port_i, &port, sizeof(int));
+
+    printf("Result: %x:%d\n", ip, port);
+
+    int sock = socket (AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in server;
+
+    server.sin_addr.s_addr = ip_i;
+    server.sin_family = AF_INET;
+    server.sin_port = port_i;
+
+    if (connect(sock ,(struct sockaddr *)&server , sizeof(server)) < 0)
+    {
+        perror("connect failed. Error");
+    }
+
+    s_state->active_socket = sock;
+    answer(s_state, COMMAND_OKAY, "blubb");
 }
 
 void ftp_quit(char *parameters, struct state *s_state)
@@ -129,6 +182,12 @@ void get_port(int socket, struct port *port)
     memcpy (port, &addr.sin_port, sizeof(struct port));
 }
 
+void create_passive_connection(struct state *s_state)
+{
+    close(s_state->passive_socket);
+    s_state->passive_socket = initialize_socket(12345);
+}
+
 void ftp_pasv(char *parameters, struct state *s_state)
 {
     struct ip ip_addr;
@@ -138,19 +197,9 @@ void ftp_pasv(char *parameters, struct state *s_state)
 
     printf("==PASV==\n");
 
-    struct sockaddr_in addr;
-    getsockname(s_state->server_socket, (struct sockaddr *)&addr, &s_len);
-
-    //memcpy (&ip_addr, &addr.sin_addr, sizeof(struct ip));
-    //memcpy (&port_p, &addr.sin_port, sizeof(struct port));
-
-    get_ip(s_state->server_socket, &ip_addr);
-    get_port(s_state->server_socket, &port);
-
-    printf("Ip: %d\n", addr.sin_addr);
-    printf("Port: %d\n", addr.sin_port);
-    printf("Ip: %d\n", s_state->server.sin_addr);
-    printf("Port: %d\n", s_state->server.sin_port);
+    create_passive_connection(s_state);
+    get_ip(s_state->passive_socket, &ip_addr);
+    get_port(s_state->passive_socket, &port);
 
     snprintf(buf, 256, "Entering passive mode (%d,%d,%d,%d,%d,%d).", ip_addr.d1, ip_addr.d2, ip_addr.d3, ip_addr.d4, port.d1, port.d2 );
     answer(s_state, PASSIVE_MODE, buf);

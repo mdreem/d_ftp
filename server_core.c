@@ -29,6 +29,8 @@ void initialize(struct state *s_state)
 {
     s_state->client_socket = 0;
     s_state->server_socket = 0;
+    s_state->passive_socket = 0;
+    s_state->active_socket = 0;
     s_state->username = NULL;
     s_state->password = NULL;
     s_state->current_dir = NULL;
@@ -52,7 +54,7 @@ void destroy(struct state *s_state)
     }
 }
 
-int initialize_socket (int port, struct state *s_state)
+int initialize_socket (int port)
 {
     int socket_desc;
     struct sockaddr_in server;
@@ -75,7 +77,6 @@ int initialize_socket (int port, struct state *s_state)
     }
     printf ("bind done. port: %d\n", port);
 
-    memcpy(&s_state->server, &server, sizeof(struct sockaddr_in));
     return socket_desc;
 }
 
@@ -137,7 +138,7 @@ int main (int argc, char *argv[])
         listening_port = strtol (argv[1], NULL, 10);
     }
 
-    socket_desc = initialize_socket (listening_port, &s_state);
+    socket_desc = initialize_socket (listening_port);
 
     listen (socket_desc, 3);
 
@@ -151,8 +152,6 @@ int main (int argc, char *argv[])
     }
 
     puts ("Connection accepted");
-
-    memcpy(&(s_state.client), &client, sizeof(struct sockaddr_in));
 
     char *client_ip = inet_ntoa (client.sin_addr);
     int client_port = ntohs (client.sin_port);
