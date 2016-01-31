@@ -129,7 +129,7 @@ int main (int argc, char *argv[])
     int client_port = ntohs (client.sin_port);
     char msg_buf[1024];
 
-    sprintf (msg_buf, "Hello %s:%d\n", client_ip, client_port);
+    sprintf (msg_buf, "200 Hello %s:%d\n", client_ip, client_port);
 
     write (new_socket, msg_buf, strlen (msg_buf));
 
@@ -153,14 +153,17 @@ int main (int argc, char *argv[])
 
         printf ("Länge: (%d; %d)\n", n, strlen (buffer));
         printf ("\"%s\"\n", buffer);
-        fflush (stdout);
 
-        parse (buffer, 256, &s_state);
+        parse (buffer, n, &s_state);
 
-        sprintf (msg_buf, "Hey %s:%d I received your message\n", client_ip,
+        sprintf (msg_buf, "200 Hey %s:%d I received your message\n", client_ip,
                  client_port);
-        write (new_socket, msg_buf, strlen (msg_buf));
+        printf("\n\nSent: %s\n\n", msg_buf);
+        int res = write (new_socket, msg_buf, strlen (msg_buf));
+        printf("Result: %d\n", res);
     }
+
+    printf ("Exiting connection-loop.");
 
     destroy(&s_state);
 
