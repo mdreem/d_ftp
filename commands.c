@@ -7,6 +7,11 @@
 #include "commands.h"
 #include "status_codes.h"
 
+int isnewline(char c)
+{
+    return c == '\n' || c == '\r';
+}
+
 char *trim_whitespace(char *string_in)
 {
     while (isspace(string_in[0])) string_in++;
@@ -18,7 +23,7 @@ char *trim_whitespace(char *string_in)
 
     char *str_end = string_in + strlen(string_in) - 1;
 
-    while (isspace(str_end[0])) str_end--;
+    while (isspace(str_end[0]) || isnewline(str_end[0])) str_end--;
 
     *(str_end + 1) = 0;
 
@@ -30,6 +35,8 @@ void ftp_user(char *parameters, struct state *s_state)
     char *username = trim_whitespace(parameters);
     char msg_buf[256];
     int len = strlen(username);
+
+    printf("==USER==\n");
 
     if (s_state->username != NULL )
     {
@@ -50,6 +57,8 @@ void ftp_pass(char *parameters, struct state *s_state)
     char msg_buf[256];
     int len = strlen(password);
 
+    printf("==PASS==\n");
+
     if (s_state->password != NULL )
     {
         free (s_state->password);
@@ -59,7 +68,7 @@ void ftp_pass(char *parameters, struct state *s_state)
     memset (s_state->password, 0, len + 1);
     strncpy(s_state->password, password, len);
 
-    snprintf(msg_buf, 256, "Hello %s", s_state->password);
+    snprintf(msg_buf, 256, "Given: %s", s_state->password);
     answer(s_state, USER_LOGGED_IN, msg_buf);
 }
 
@@ -98,6 +107,53 @@ void ftp_quit(char *parameters, struct state *s_state)
     printf("Quitting.\n");
     destroy(s_state);
     exit(0);
+}
+
+void get_sockaddr(int socket, struct sockaddr_in* addr)
+{
+    socklen_t s_len = sizeof(struct sockaddr_in);
+    getsockname(socket, (struct sockaddr *)addr, &s_len);
+}
+
+void get_ip(int socket, struct ip *ip_addr)
+{
+    struct sockaddr_in addr;
+    get_sockaddr(socket, &addr);
+    memcpy (ip_addr, &addr.sin_addr, sizeof(struct ip));
+}
+
+void get_port(int socket, struct port *port)
+{
+    struct sockaddr_in addr;
+    get_sockaddr(socket, &addr);
+    memcpy (port, &addr.sin_port, sizeof(struct port));
+}
+
+void ftp_pasv(char *parameters, struct state *s_state)
+{
+    struct ip ip_addr;
+    struct port port;
+    char buf[256];
+    socklen_t s_len = sizeof(struct sockaddr_in);
+
+    printf("==PASV==\n");
+
+    struct sockaddr_in addr;
+    getsockname(s_state->server_socket, (struct sockaddr *)&addr, &s_len);
+
+    //memcpy (&ip_addr, &addr.sin_addr, sizeof(struct ip));
+    //memcpy (&port_p, &addr.sin_port, sizeof(struct port));
+
+    get_ip(s_state->server_socket, &ip_addr);
+    get_port(s_state->server_socket, &port);
+
+    printf("Ip: %d\n", addr.sin_addr);
+    printf("Port: %d\n", addr.sin_port);
+    printf("Ip: %d\n", s_state->server.sin_addr);
+    printf("Port: %d\n", s_state->server.sin_port);
+
+    snprintf(buf, 256, "Entering passive mode (%d,%d,%d,%d,%d,%d).", ip_addr.d1, ip_addr.d2, ip_addr.d3, ip_addr.d4, port.d1, port.d2 );
+    answer(s_state, PASSIVE_MODE, buf);
 }
 
 void ftp_debug(char *parameters, struct state *s_state)
