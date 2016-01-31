@@ -13,8 +13,21 @@ void initialize(struct state *s_state)
 {
     s_state->client_socket = 0;
     s_state->server_socket = 0;
-    s_state->username = 0;
-    s_state->password = 0;
+    s_state->username = NULL;
+    s_state->password = NULL;
+}
+
+void destroy(struct state *s_state)
+{
+    if (s_state->username != NULL)
+    {
+        free (s_state->username);
+    }
+
+    if (s_state->password != NULL)
+    {
+        free (s_state->password);
+    }
 }
 
 int initialize_socket (int port)
@@ -148,6 +161,8 @@ int main (int argc, char *argv[])
                  client_port);
         write (new_socket, msg_buf, strlen (msg_buf));
     }
+
+    destroy(&s_state);
 
     return 0;
 }

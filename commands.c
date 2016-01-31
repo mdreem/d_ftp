@@ -28,14 +28,38 @@ void ftp_user(char *parameters, struct state *s_state)
 {
     char *username = trim_whitespace(parameters);
     char msg_buf[256];
+    int len = strlen(username);
 
-    sprintf(msg_buf, "Hello \"%s\"\n", username);
+    if (s_state->username != NULL )
+    {
+        free (s_state->username);
+    }
+
+    s_state->username = (char *) malloc(sizeof(char) * (len + 1));
+    memset (s_state->username, 0, len + 1);
+    strncpy(s_state->username, username, len);
+
+    snprintf(msg_buf, 256, "Hello \"%s\"\n", s_state->username);
     write(s_state->client_socket , msg_buf , strlen(msg_buf));
 }
 
 void ftp_pass(char *parameters, struct state *s_state)
 {
-    printf("pass not implemented yet.\n");
+    char *password = trim_whitespace(parameters);
+    char msg_buf[256];
+    int len = strlen(password);
+
+    if (s_state->password != NULL )
+    {
+        free (s_state->password);
+    }
+
+    s_state->password = (char *) malloc(sizeof(char) * (len + 1));
+    memset (s_state->password, 0, len + 1);
+    strncpy(s_state->password, password, len);
+
+    snprintf(msg_buf, 256, "Hello \"%s\"\n", s_state->password);
+    write(s_state->client_socket , msg_buf , strlen(msg_buf));
 }
 
 void ftp_acct(char *parameters, struct state *s_state)
@@ -66,6 +90,19 @@ void ftp_rein(char *parameters, struct state *s_state)
 void ftp_quit(char *parameters, struct state *s_state)
 {
     printf("Quitting.\n");
+    destroy(s_state);
     exit(0);
 }
 
+void ftp_debug(char *parameters, struct state *s_state)
+{
+    char debug_information[1024];
+    sprintf (debug_information, "==STATE==\nServer Socket Descriptor: %d\nClient Socket Descriptor: %d\nUsername: %s\nPassword: %s\n", \
+            s_state->server_socket, \
+            s_state->client_socket, \
+            s_state->username, \
+            s_state->password);
+
+    write(s_state->client_socket , debug_information , strlen(debug_information));
+    printf("%s", debug_information);
+}

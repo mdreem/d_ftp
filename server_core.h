@@ -10,5 +10,8 @@ struct state
     char *password;
 };
 
+void initialize(struct state *s_state);
+void destroy(struct state *s_state);
+
 #endif
 
