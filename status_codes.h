@@ -1,0 +1,15 @@
+#ifndef STATUS_CODES_H
+#define STATUS_CODES_H
+
+enum
+{
+    COMMAND_OKAY = 200,
+    SYSTEM_TYPE = 215,
+    USER_LOGGED_IN = 230,
+    NEED_PASSWORD = 331,
+    SYNTAX_ERROR = 500,
+    NOT_IMPLEMENTED = 502,
+    NOT_LOGGED_IN = 530
+};
+
+#endif

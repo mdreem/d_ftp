@@ -5,6 +5,7 @@
 #include <ctype.h>
 
 #include "commands.h"
+#include "status_codes.h"
 
 char *trim_whitespace(char *string_in)
 {
@@ -39,8 +40,8 @@ void ftp_user(char *parameters, struct state *s_state)
     memset (s_state->username, 0, len + 1);
     strncpy(s_state->username, username, len);
 
-    snprintf(msg_buf, 256, "Hello \"%s\"\n", s_state->username);
-    answer(s_state, 230, msg_buf);
+    snprintf(msg_buf, 256, "Hello \"%s\"", s_state->username);
+    answer(s_state, NEED_PASSWORD, msg_buf);
 }
 
 void ftp_pass(char *parameters, struct state *s_state)
@@ -58,38 +59,38 @@ void ftp_pass(char *parameters, struct state *s_state)
     memset (s_state->password, 0, len + 1);
     strncpy(s_state->password, password, len);
 
-    snprintf(msg_buf, 256, "200 Hello %s\n", s_state->password);
-    answer(s_state, 230, msg_buf);
+    snprintf(msg_buf, 256, "Hello %s", s_state->password);
+    answer(s_state, USER_LOGGED_IN, msg_buf);
 }
 
 void ftp_acct(char *parameters, struct state *s_state)
 {
-    printf("acct not implemented yet.\n");
+    answer(s_state, NOT_IMPLEMENTED, "acct not implemented yet.");
 }
 
 void ftp_cwd(char *parameters, struct state *s_state)
 {
-    printf("cwd not implemented yet.\n");
+    answer(s_state, NOT_IMPLEMENTED, "cwd not implemented yet.");
 }
 
 void ftp_cdup(char *parameters, struct state *s_state)
 {
-    printf("cdup not implemented yet.\n");
+    answer(s_state, NOT_IMPLEMENTED, "cdup not implemented yet.");
 }
 
 void ftp_smnt(char *parameters, struct state *s_state)
 {
-    printf("smnt not implemented yet.\n");
+    answer(s_state, NOT_IMPLEMENTED, "smnt not implemented yet.");
 }
 
 void ftp_rein(char *parameters, struct state *s_state)
 {
-    printf("rein not implemented yet.\n");
+    answer(s_state, NOT_IMPLEMENTED, "rein not implemented yet.");
 }
 
 void ftp_syst(char *parameters, struct state *s_state)
 {
-    answer(s_state, 215, "Linux");
+    answer(s_state, SYSTEM_TYPE, "Linux");
 }
 
 void ftp_quit(char *parameters, struct state *s_state)
@@ -108,6 +109,6 @@ void ftp_debug(char *parameters, struct state *s_state)
             s_state->username,
             s_state->password);
 
-    write(s_state->client_socket , debug_information , strlen(debug_information));
+    answer(s_state, COMMAND_OKAY, debug_information);
     printf("%s", debug_information);
 }

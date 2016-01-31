@@ -6,8 +6,14 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#include "status_codes.h"
 #include "server_core.h"
 #include "commands.h"
+
+int isnewline(char c)
+{
+    return c == '\n' || c == '\r';
+}
 
 int answer(struct state *s_state, int status_code, const char* message)
 {
@@ -15,7 +21,12 @@ int answer(struct state *s_state, int status_code, const char* message)
     snprintf(buffer, 256, "%d %s\n", status_code, message);
 
     int n = write (s_state->client_socket, buffer, strlen (buffer));
-    printf("Answered: \"%s\"", buffer);
+
+    for (int i=0; i < strlen(buffer) && i < 256; i++)
+    {
+        if(isnewline(buffer[i])) buffer[i] = '@';
+    }
+    printf("Answered: \"%s\"\n", buffer);
     return n;
 }
 
@@ -66,12 +77,7 @@ int initialize_socket (int port)
     return socket_desc;
 }
 
-int isnewline(char c)
-{
-    return c == '\n' || c == '\r';
-}
-
-void parse_command (char *message, int maxlen, struct state *s_state)
+void parse(char *message, int maxlen, struct state *s_state)
 {
     int command = 0, command_length;
     int param_pos;
@@ -112,24 +118,8 @@ void parse_command (char *message, int maxlen, struct state *s_state)
             return;
         }
     }
-    answer(s_state, 502, "Command not implemented.");
+    answer(s_state, NOT_IMPLEMENTED, "Command not implemented.");
 }
-
-void parse (char *message, int maxlen, struct state *s_state)
-{
-    //TODO: split newlines here!
-    char *end_of_message = message + maxlen;
-
-    while (message < end_of_message) {
-        int newline = 0;
-        while (!isnewline(message[newline]) && message + newline < end_of_message) newline++;
-        parse_command (message, newline, s_state);
-
-        message = message + newline;
-        while (isnewline(*message) && message < end_of_message) message++;
-    }
-}
-
 
 int main (int argc, char *argv[])
 {
@@ -162,7 +152,6 @@ int main (int argc, char *argv[])
     int client_port = ntohs (client.sin_port);
     char msg_buf[1024];
 
-
     int connected = 1;
     char buffer[256];
 
@@ -171,10 +160,9 @@ int main (int argc, char *argv[])
     s_state.server_socket = socket_desc;
     s_state.client_socket = new_socket;
 
-    sprintf (msg_buf, "Hello %s:%d\n", client_ip, client_port);
+    sprintf (msg_buf, "Hello %s:%d", client_ip, client_port);
 
-    //write (new_socket, msg_buf, strlen (msg_buf));
-    answer(&s_state, 200, msg_buf);
+    answer(&s_state, COMMAND_OKAY, msg_buf);
 
     while (connected)
     {
@@ -190,10 +178,6 @@ int main (int argc, char *argv[])
         printf ("Command: \"%s\"\n", trim_whitespace(buffer));
 
         parse (buffer, n, &s_state);
-
-        //sprintf (msg_buf, "Hey %s:%d I received your message\n", client_ip, client_port);
-        //int res = write (new_socket, msg_buf, strlen (msg_buf));
-        //int res = answer(&s_state, 200, msg_buf);
     }
 
     printf ("Exiting connection-loop.");
