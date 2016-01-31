@@ -1,13 +1,9 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
+#include "server_core.h"
 
-struct state
-{
-    int client_socket;
-    int server_socket;
-};
-
+char *trim_whitespace(char *string_in);
 
 void ftp_user(char *, struct state *);
 void ftp_pass(char *, struct state *);
