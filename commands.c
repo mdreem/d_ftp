@@ -40,7 +40,7 @@ void ftp_user(char *parameters, struct state *s_state)
     strncpy(s_state->username, username, len);
 
     snprintf(msg_buf, 256, "Hello \"%s\"\n", s_state->username);
-    write(s_state->client_socket , msg_buf , strlen(msg_buf));
+    answer(s_state, 230, msg_buf);
 }
 
 void ftp_pass(char *parameters, struct state *s_state)
@@ -58,8 +58,8 @@ void ftp_pass(char *parameters, struct state *s_state)
     memset (s_state->password, 0, len + 1);
     strncpy(s_state->password, password, len);
 
-    snprintf(msg_buf, 256, "200 Hello \"%s\"\n", s_state->password);
-    write(s_state->client_socket , msg_buf , strlen(msg_buf));
+    snprintf(msg_buf, 256, "200 Hello %s\n", s_state->password);
+    answer(s_state, 230, msg_buf);
 }
 
 void ftp_acct(char *parameters, struct state *s_state)
@@ -85,6 +85,11 @@ void ftp_smnt(char *parameters, struct state *s_state)
 void ftp_rein(char *parameters, struct state *s_state)
 {
     printf("rein not implemented yet.\n");
+}
+
+void ftp_syst(char *parameters, struct state *s_state)
+{
+    answer(s_state, 215, "Linux");
 }
 
 void ftp_quit(char *parameters, struct state *s_state)

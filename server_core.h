@@ -13,5 +13,7 @@ struct state
 void initialize(struct state *s_state);
 void destroy(struct state *s_state);
 
+int answer(struct state *s_state, int status_code, const char* message);
+
 #endif
 
