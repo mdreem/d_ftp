@@ -4,6 +4,7 @@
 #include "server_core.h"
 
 char *trim_whitespace(char *string_in);
+int isnewline(char c);
 
 void ftp_user(char *, struct state *);
 void ftp_pass(char *, struct state *);
@@ -14,6 +15,7 @@ void ftp_smnt(char *, struct state *);
 void ftp_rein(char *, struct state *);
 void ftp_syst(char *, struct state *);
 void ftp_quit(char *, struct state *);
+void ftp_pasv(char *, struct state *);
 void ftp_debug(char *, struct state *);
 
 typedef void (*command_function) (char *, struct state*);
@@ -35,6 +37,7 @@ static const struct command_to_function commands[] =
     {&ftp_rein, "rein"},
     {&ftp_syst, "syst"},
     {&ftp_quit, "quit"},
+    {&ftp_pasv, "pasv"},
     {&ftp_debug, "debug"}
 };
 
