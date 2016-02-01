@@ -3,47 +3,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
-#include <dirent.h> 
+#include <dirent.h>
 
+#include "tools.h"
 #include "commands.h"
 #include "status_codes.h"
-
-int isnewline(char c)
-{
-    return c == '\n' || c == '\r';
-}
-
-char *trim_whitespace(char *string_in)
-{
-    while (isspace(string_in[0])) string_in++;
-
-    if (string_in[0] == 0)
-    {
-        return string_in;
-    }
-
-    char *str_end = string_in + strlen(string_in) - 1;
-
-    while (isspace(str_end[0]) || isnewline(str_end[0])) str_end--;
-
-    *(str_end + 1) = 0;
-
-    return string_in;
-}
-
-int get_socket(struct state *s_state)
-{
-    if (s_state->s_state == SERVER_STANDARD_MODE)
-    {
-        return s_state->active_socket;
-    }
-    else
-    {
-        struct sockaddr_in client;
-        int c = sizeof (struct sockaddr_in);
-        return accept (s_state->passive_socket, (struct sockaddr *) &client, (socklen_t *) &c);
-    }
-}
 
 void ftp_user(char *parameters, struct state *s_state)
 {
@@ -92,7 +56,6 @@ void ftp_acct(char *parameters, struct state *s_state)
     answer(s_state, NOT_IMPLEMENTED, "acct not implemented yet.");
 }
 
-
 void ftp_cwd(char *parameters, struct state *s_state)
 {
     answer(s_state, NOT_IMPLEMENTED, "cwd not implemented yet.");
@@ -118,17 +81,13 @@ void ftp_stor(char *parameters, struct state *s_state)
     chdir(s_state->current_dir);
     dest_file = fopen(trim_whitespace(parameters), "wb");
 
-    printf("\n->");
     do
     {
         memset(buf, 0, 256);
         n = read(sock, buf, 255);
         fwrite(buf, 1, n, dest_file);
-        printf("%s", buf);
     }
     while (n > 0);
-
-    printf("<-(%d) \n", n);
 
     answer(s_state, CLOSING_DATA_CONNECTION, "File transfer succesful.");
     close(sock);
@@ -271,32 +230,6 @@ void ftp_mode(char *parameters, struct state *s_state)
 void ftp_noop(char *parameters, struct state *s_state)
 {
     answer(s_state, COMMAND_OKAY, "NOOP okay.");
-}
-
-void get_sockaddr(int socket, struct sockaddr_in* addr)
-{
-    socklen_t s_len = sizeof(struct sockaddr_in);
-    getsockname(socket, (struct sockaddr *)addr, &s_len);
-}
-
-void get_ip(int socket, struct ip *ip_addr)
-{
-    struct sockaddr_in addr;
-    get_sockaddr(socket, &addr);
-    memcpy (ip_addr, &addr.sin_addr, sizeof(struct ip));
-}
-
-void get_port(int socket, struct port *port)
-{
-    struct sockaddr_in addr;
-    get_sockaddr(socket, &addr);
-    memcpy (port, &addr.sin_port, sizeof(struct port));
-}
-
-void create_passive_connection(struct state *s_state)
-{
-    close(s_state->passive_socket);
-    s_state->passive_socket = initialize_socket(0);
 }
 
 void ftp_pasv(char *parameters, struct state *s_state)

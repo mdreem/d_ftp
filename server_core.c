@@ -9,21 +9,7 @@
 #include "status_codes.h"
 #include "server_core.h"
 #include "commands.h"
-
-int answer(struct state *s_state, int status_code, const char* message)
-{
-    char buffer[256];
-    snprintf(buffer, 256, "%d %s\r\n", status_code, message);
-
-    int n = write (s_state->client_socket, buffer, strlen (buffer));
-
-    for (int i=0; i < strlen(buffer) && i < 256; i++)
-    {
-        if(isnewline(buffer[i])) buffer[i] = '@';
-    }
-    printf("Answered: \"%s\"\n", buffer);
-    return n;
-}
+#include "tools.h"
 
 void initialize(struct state *s_state)
 {
@@ -53,32 +39,6 @@ void destroy(struct state *s_state)
     {
         free (s_state->current_dir);
     }
-}
-
-int initialize_socket (int port)
-{
-    int socket_desc;
-    struct sockaddr_in server;
-
-    socket_desc = socket (AF_INET, SOCK_STREAM, 0);
-    if (socket_desc == -1)
-    {
-        perror ("Could not create socket");
-        exit (1);
-    }
-
-    server.sin_family = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons (port);
-
-    if (bind (socket_desc, (struct sockaddr *) &server, sizeof (server)) < 0)
-    {
-        perror ("bind failed");
-        exit (1);
-    }
-    printf ("bind done. port: %d\n", port);
-
-    return socket_desc;
 }
 
 void parse(char *message, int maxlen, struct state *s_state)

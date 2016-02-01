@@ -40,8 +40,5 @@ struct port
 void initialize(struct state *s_state);
 void destroy(struct state *s_state);
 
-int initialize_socket (int port);
-int answer(struct state *s_state, int status_code, const char* message);
-
 #endif
 
