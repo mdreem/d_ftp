@@ -88,6 +88,36 @@ void ftp_cdup(char *parameters, struct state *s_state)
     answer(s_state, NOT_IMPLEMENTED, "cdup not implemented yet.");
 }
 
+void ftp_stor(char *parameters, struct state *s_state)
+{
+    printf("==STOR==\n");
+
+    answer(s_state, FILE_STATUS_OKAY, "STOR file status okay.");
+
+    char buf[256];
+    int n = 0;
+    FILE *dest_file;
+
+    chdir(s_state->current_dir);
+    dest_file = fopen(trim_whitespace(parameters), "wb");
+
+    printf("\n->");
+    do
+    {
+        memset(buf, 0, 256);
+        n = read(s_state->active_socket, buf, 255);
+        fwrite(buf, 1, n, dest_file);
+        printf("%s", buf);
+    }
+    while (n > 0);
+
+    printf("<-(%d) \n", n);
+
+    answer(s_state, CLOSING_DATA_CONNECTION, "File transfer succesful.");
+    close(s_state->active_socket);
+    fclose(dest_file);
+}
+
 void ftp_list(char *parameters, struct state *s_state)
 {
     char buf[1024];
@@ -168,6 +198,20 @@ void ftp_quit(char *parameters, struct state *s_state)
     printf("Quitting.\n");
     destroy(s_state);
     exit(0);
+}
+
+void ftp_stru(char *parameters, struct state *s_state)
+{
+    printf("==STRU==\n");
+    printf("paremeter: %s", parameters);
+    answer(s_state, COMMAND_OKAY, "STRU command succesful.");
+}
+
+void ftp_mode(char *parameters, struct state *s_state)
+{
+    printf("==MODE==\n");
+    printf("paremeter: %s", parameters);
+    answer(s_state, COMMAND_OKAY, "MODE command succesful.");
 }
 
 void get_sockaddr(int socket, struct sockaddr_in* addr)
