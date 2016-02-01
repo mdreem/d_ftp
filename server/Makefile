@@ -11,5 +11,4 @@ tools.o: tools.c
 	gcc -g3 -c tools.c
 
 clean:
-	rm -rf server_core.o commands.o server
-
+	rm -rf server_core.o commands.o tools.o server
