@@ -34,6 +34,7 @@ void initialize(struct state *s_state)
     s_state->username = NULL;
     s_state->password = NULL;
     s_state->current_dir = NULL;
+    s_state->s_state = SERVER_STANDARD_MODE;
 }
 
 void destroy(struct state *s_state)

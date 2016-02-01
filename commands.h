@@ -22,6 +22,7 @@ void ftp_stru(char *, struct state *);
 void ftp_mode(char *, struct state *);
 void ftp_stor(char *, struct state *);
 void ftp_retr(char *, struct state *);
+void ftp_noop(char *, struct state *);
 void ftp_debug(char *, struct state *);
 
 typedef void (*command_function) (char *, struct state*);
@@ -50,6 +51,7 @@ static const struct command_to_function commands[] =
     {&ftp_mode, "mode"},
     {&ftp_stor, "stor"},
     {&ftp_retr, "retr"},
+    {&ftp_noop, "noop"},
     {&ftp_debug, "debug"}
 };
 

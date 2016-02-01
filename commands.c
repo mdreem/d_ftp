@@ -78,6 +78,7 @@ void ftp_acct(char *parameters, struct state *s_state)
     answer(s_state, NOT_IMPLEMENTED, "acct not implemented yet.");
 }
 
+
 void ftp_cwd(char *parameters, struct state *s_state)
 {
     answer(s_state, NOT_IMPLEMENTED, "cwd not implemented yet.");
@@ -143,9 +144,22 @@ void ftp_retr(char *parameters, struct state *s_state)
 void ftp_list(char *parameters, struct state *s_state)
 {
     char buf[1024];
+    int sock;
     answer(s_state, FILE_STATUS_OKAY, "Sending directory listing.");
 
     printf("Sending contents of %s\n", s_state->current_dir);
+
+
+    if (s_state->s_state == SERVER_STANDARD_MODE)
+    {
+        sock = s_state->active_socket;
+    }
+    else
+    {
+        struct sockaddr_in client;
+        int c = sizeof (struct sockaddr_in);
+        sock = accept (s_state->passive_socket, (struct sockaddr *) &client, (socklen_t *) &c);
+    }
 
     DIR *d;
     struct dirent *dir;
@@ -155,13 +169,13 @@ void ftp_list(char *parameters, struct state *s_state)
         while ((dir = readdir(d)) != NULL)
         {
             snprintf(buf, 1024, "%s\r\n", dir->d_name);
-            write (s_state->active_socket, buf, strlen (buf));
+            write (sock, buf, strlen (buf));
         }
 
         closedir(d);
     }
 
-    close(s_state->active_socket);
+    close(sock);
     s_state->active_socket = -1;
     answer(s_state, CLOSING_DATA_CONNECTION, "Finished sending directory listing.");
 }
@@ -237,6 +251,11 @@ void ftp_mode(char *parameters, struct state *s_state)
     answer(s_state, COMMAND_OKAY, "MODE command succesful.");
 }
 
+void ftp_noop(char *parameters, struct state *s_state)
+{
+    answer(s_state, COMMAND_OKAY, "NOOP okay.");
+}
+
 void get_sockaddr(int socket, struct sockaddr_in* addr)
 {
     socklen_t s_len = sizeof(struct sockaddr_in);
@@ -260,7 +279,7 @@ void get_port(int socket, struct port *port)
 void create_passive_connection(struct state *s_state)
 {
     close(s_state->passive_socket);
-    s_state->passive_socket = initialize_socket(12345);
+    s_state->passive_socket = initialize_socket(0);
 }
 
 void ftp_pasv(char *parameters, struct state *s_state)
@@ -276,6 +295,8 @@ void ftp_pasv(char *parameters, struct state *s_state)
     get_ip(s_state->passive_socket, &ip_addr);
     get_port(s_state->passive_socket, &port);
 
+    listen (s_state->passive_socket, 3);
+    s_state->s_state = PASSIVE_MODE;
     snprintf(buf, 256, "Entering passive mode (%d,%d,%d,%d,%d,%d).", ip_addr.d1, ip_addr.d2, ip_addr.d3, ip_addr.d4, port.d1, port.d2 );
     answer(s_state, PASSIVE_MODE, buf);
 }

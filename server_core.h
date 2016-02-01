@@ -14,6 +14,13 @@ struct state
     char *password;
 
     char *current_dir;
+
+    int s_state;
+};
+
+enum server_state
+{
+    SERVER_PASSIVE_MODE, SERVER_STANDARD_MODE
 };
 
 struct ip
