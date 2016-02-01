@@ -90,14 +90,12 @@ void ftp_cdup(char *parameters, struct state *s_state)
 
 void ftp_stor(char *parameters, struct state *s_state)
 {
-    printf("==STOR==\n");
-
-    answer(s_state, FILE_STATUS_OKAY, "STOR file status okay.");
-
     char buf[256];
     int n = 0;
     FILE *dest_file;
 
+    printf("==STOR==\n");
+    answer(s_state, FILE_STATUS_OKAY, "STOR file status okay.");
     chdir(s_state->current_dir);
     dest_file = fopen(trim_whitespace(parameters), "wb");
 
@@ -115,7 +113,31 @@ void ftp_stor(char *parameters, struct state *s_state)
 
     answer(s_state, CLOSING_DATA_CONNECTION, "File transfer succesful.");
     close(s_state->active_socket);
+    s_state->active_socket = -1;
     fclose(dest_file);
+}
+
+void ftp_retr(char *parameters, struct state *s_state)
+{
+    char buf[256];
+    int n = 0;
+    FILE *source_file;
+    printf("==RETR==\n");
+    answer(s_state, FILE_STATUS_OKAY, "RETR.");
+    chdir(s_state->current_dir);
+    source_file = fopen(trim_whitespace(parameters), "rb");
+
+    do
+    {
+        n = fread(buf, 1, 256, source_file);
+        write(s_state->active_socket, buf, n);
+    }
+    while (n > 0);
+
+    answer(s_state, CLOSING_DATA_CONNECTION, "File transfer succesful.");
+    close(s_state->active_socket);
+    s_state->active_socket = -1;
+    fclose(source_file);
 }
 
 void ftp_list(char *parameters, struct state *s_state)
@@ -140,6 +162,7 @@ void ftp_list(char *parameters, struct state *s_state)
     }
 
     close(s_state->active_socket);
+    s_state->active_socket = -1;
     answer(s_state, CLOSING_DATA_CONNECTION, "Finished sending directory listing.");
 }
 
