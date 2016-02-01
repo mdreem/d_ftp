@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <dirent.h> 
 
 #include "commands.h"
 #include "status_codes.h"
@@ -89,20 +90,31 @@ void ftp_cdup(char *parameters, struct state *s_state)
 
 void ftp_list(char *parameters, struct state *s_state)
 {
-    char *buffer = "lalalalalaala\n";
-    char *fin_buffer = "250 Fertig\n";
-    answer(s_state, FILE_STATUS_OKAY, "Okay...");
-    //answer(s_state, DATA_CONNECTION_ALREADY_OPEN, "Starting...");
+    char buf[1024];
+    char *buffer = "lalalalalaala\r\n";
+    char *fin_buffer = "250 Fertig\r\n";
+    answer(s_state, FILE_STATUS_OKAY, "Sending directory listing.");
 
-    write (s_state->active_socket, buffer, strlen (buffer));
-    write (s_state->active_socket, fin_buffer, strlen (fin_buffer));
-    //write (s_state->client_socket, buffer, strlen (buffer));
+    DIR *d;
+    struct dirent *dir;
+    //d = opendir(s_state->current_dir);
+    d = opendir(".");
+    if (d)
+    {
+        while ((dir = readdir(d)) != NULL)
+        {
+            snprintf(buf, 1024, "%s\r\n", dir->d_name);
+            write (s_state->active_socket, buf, strlen (buf));
+        }
 
+        closedir(d);
+    }
 
-    //answer(s_state, REQUESTED_FILE_ACTION_OKAY, "Finished.");
-    answer(s_state, CLOSING_DATA_CONNECTION, "Finished.");
+    //write (s_state->active_socket, buffer, strlen (buffer));
+    //write (s_state->active_socket, fin_buffer, strlen (fin_buffer));
 
     close(s_state->active_socket);
+    answer(s_state, CLOSING_DATA_CONNECTION, "Finished sending directory listing.");
 }
 
 void ftp_smnt(char *parameters, struct state *s_state)
@@ -152,7 +164,7 @@ void ftp_port(char *parameters, struct state *s_state)
     }
 
     s_state->active_socket = sock;
-    answer(s_state, COMMAND_OKAY, "blubb");
+    answer(s_state, COMMAND_OKAY, "Port command succesful.");
 }
 
 void ftp_quit(char *parameters, struct state *s_state)
