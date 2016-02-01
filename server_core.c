@@ -13,7 +13,7 @@
 int answer(struct state *s_state, int status_code, const char* message)
 {
     char buffer[256];
-    snprintf(buffer, 256, "%d %s\n", status_code, message);
+    snprintf(buffer, 256, "%d %s\r\n", status_code, message);
 
     int n = write (s_state->client_socket, buffer, strlen (buffer));
 
@@ -163,8 +163,9 @@ int main (int argc, char *argv[])
     s_state.server_socket = socket_desc;
     s_state.client_socket = new_socket;
 
-    char *current_dir = "files";
+    char *current_dir = "./files";
     s_state.current_dir = malloc(sizeof(char) * (strlen(current_dir) + 1));
+    memcpy(s_state.current_dir, current_dir, sizeof(current_dir));
 
     sprintf (msg_buf, "Hello %s:%d (%x)", client_ip, client_port, client.sin_addr);
 

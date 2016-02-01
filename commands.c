@@ -91,14 +91,13 @@ void ftp_cdup(char *parameters, struct state *s_state)
 void ftp_list(char *parameters, struct state *s_state)
 {
     char buf[1024];
-    char *buffer = "lalalalalaala\r\n";
-    char *fin_buffer = "250 Fertig\r\n";
     answer(s_state, FILE_STATUS_OKAY, "Sending directory listing.");
+
+    printf("Sending contents of %s\n", s_state->current_dir);
 
     DIR *d;
     struct dirent *dir;
-    //d = opendir(s_state->current_dir);
-    d = opendir(".");
+    d = opendir(s_state->current_dir);
     if (d)
     {
         while ((dir = readdir(d)) != NULL)
@@ -109,9 +108,6 @@ void ftp_list(char *parameters, struct state *s_state)
 
         closedir(d);
     }
-
-    //write (s_state->active_socket, buffer, strlen (buffer));
-    //write (s_state->active_socket, fin_buffer, strlen (fin_buffer));
 
     close(s_state->active_socket);
     answer(s_state, CLOSING_DATA_CONNECTION, "Finished sending directory listing.");
