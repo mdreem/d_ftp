@@ -31,6 +31,20 @@ char *trim_whitespace(char *string_in)
     return string_in;
 }
 
+int get_socket(struct state *s_state)
+{
+    if (s_state->s_state == SERVER_STANDARD_MODE)
+    {
+        return s_state->active_socket;
+    }
+    else
+    {
+        struct sockaddr_in client;
+        int c = sizeof (struct sockaddr_in);
+        return accept (s_state->passive_socket, (struct sockaddr *) &client, (socklen_t *) &c);
+    }
+}
+
 void ftp_user(char *parameters, struct state *s_state)
 {
     char *username = trim_whitespace(parameters);
@@ -94,9 +108,13 @@ void ftp_stor(char *parameters, struct state *s_state)
     char buf[256];
     int n = 0;
     FILE *dest_file;
+    int sock;
 
     printf("==STOR==\n");
     answer(s_state, FILE_STATUS_OKAY, "STOR file status okay.");
+
+    sock = get_socket(s_state);
+
     chdir(s_state->current_dir);
     dest_file = fopen(trim_whitespace(parameters), "wb");
 
@@ -104,7 +122,7 @@ void ftp_stor(char *parameters, struct state *s_state)
     do
     {
         memset(buf, 0, 256);
-        n = read(s_state->active_socket, buf, 255);
+        n = read(sock, buf, 255);
         fwrite(buf, 1, n, dest_file);
         printf("%s", buf);
     }
@@ -113,8 +131,9 @@ void ftp_stor(char *parameters, struct state *s_state)
     printf("<-(%d) \n", n);
 
     answer(s_state, CLOSING_DATA_CONNECTION, "File transfer succesful.");
-    close(s_state->active_socket);
+    close(sock);
     s_state->active_socket = -1;
+    s_state->passive_socket = -1;
     fclose(dest_file);
 }
 
@@ -123,21 +142,27 @@ void ftp_retr(char *parameters, struct state *s_state)
     char buf[256];
     int n = 0;
     FILE *source_file;
+    int sock;
+
     printf("==RETR==\n");
     answer(s_state, FILE_STATUS_OKAY, "RETR.");
+
+    sock = get_socket(s_state);
+
     chdir(s_state->current_dir);
     source_file = fopen(trim_whitespace(parameters), "rb");
 
     do
     {
         n = fread(buf, 1, 256, source_file);
-        write(s_state->active_socket, buf, n);
+        write(sock, buf, n);
     }
     while (n > 0);
 
     answer(s_state, CLOSING_DATA_CONNECTION, "File transfer succesful.");
-    close(s_state->active_socket);
+    close(sock);
     s_state->active_socket = -1;
+    s_state->passive_socket = -1;
     fclose(source_file);
 }
 
@@ -149,17 +174,7 @@ void ftp_list(char *parameters, struct state *s_state)
 
     printf("Sending contents of %s\n", s_state->current_dir);
 
-
-    if (s_state->s_state == SERVER_STANDARD_MODE)
-    {
-        sock = s_state->active_socket;
-    }
-    else
-    {
-        struct sockaddr_in client;
-        int c = sizeof (struct sockaddr_in);
-        sock = accept (s_state->passive_socket, (struct sockaddr *) &client, (socklen_t *) &c);
-    }
+    sock = get_socket(s_state);
 
     DIR *d;
     struct dirent *dir;
@@ -177,6 +192,8 @@ void ftp_list(char *parameters, struct state *s_state)
 
     close(sock);
     s_state->active_socket = -1;
+    s_state->passive_socket = -1;
+    s_state->s_state = SERVER_STANDARD_MODE;
     answer(s_state, CLOSING_DATA_CONNECTION, "Finished sending directory listing.");
 }
 
