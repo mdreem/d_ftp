@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
     s_state.server_socket = socket_desc;
     s_state.client_socket = new_socket;
 
-    char *current_dir = "./files";
+    char *current_dir = "../files";
     s_state.base_dir = malloc(sizeof(char) * (strlen(current_dir) + 1));
     memcpy(s_state.base_dir, current_dir, sizeof(current_dir));
 
@@ -136,6 +136,8 @@ int main(int argc, char *argv[])
             client.sin_addr);
 
     answer(&s_state, COMMAND_OKAY, msg_buf);
+
+    chdir(s_state.base_dir);
 
     while (connected)
     {

@@ -56,16 +56,6 @@ void ftp_acct(char *parameters, struct state *s_state)
     answer(s_state, NOT_IMPLEMENTED, "acct not implemented yet.");
 }
 
-void ftp_cwd(char *parameters, struct state *s_state)
-{
-    answer(s_state, NOT_IMPLEMENTED, "cwd not implemented yet.");
-}
-
-void ftp_cdup(char *parameters, struct state *s_state)
-{
-    answer(s_state, NOT_IMPLEMENTED, "cdup not implemented yet.");
-}
-
 void ftp_stor(char *parameters, struct state *s_state)
 {
     char buf[256];
@@ -78,7 +68,6 @@ void ftp_stor(char *parameters, struct state *s_state)
 
     sock = get_socket(s_state);
 
-    chdir(s_state->base_dir);
     dest_file = fopen(trim_whitespace(parameters), "wb");
 
     do
@@ -108,7 +97,6 @@ void ftp_retr(char *parameters, struct state *s_state)
 
     sock = get_socket(s_state);
 
-    chdir(s_state->base_dir);
     source_file = fopen(trim_whitespace(parameters), "rb");
 
     do
@@ -128,6 +116,7 @@ void ftp_retr(char *parameters, struct state *s_state)
 void ftp_list(char *parameters, struct state *s_state)
 {
     char buf[1024];
+    char cwd[1024];
     int sock;
     answer(s_state, FILE_STATUS_OKAY, "Sending directory listing.");
 
@@ -137,7 +126,9 @@ void ftp_list(char *parameters, struct state *s_state)
 
     DIR *d;
     struct dirent *dir;
-    d = opendir(s_state->base_dir);
+
+    getcwd(cwd, sizeof(cwd));
+    d = opendir(cwd);
     if (d)
     {
         while ((dir = readdir(d)) != NULL)
@@ -232,6 +223,18 @@ void ftp_mode(char *parameters, struct state *s_state)
 void ftp_noop(char *parameters, struct state *s_state)
 {
     answer(s_state, COMMAND_OKAY, "NOOP okay.");
+}
+
+void ftp_cwd(char *parameters, struct state *s_state)
+{
+    chdir(parameters);
+    answer(s_state, REQUESTED_FILE_ACTION_OKAY, "Changed directory.");
+}
+
+void ftp_cdup(char *parameters, struct state *s_state)
+{
+    chdir("..");
+    answer(s_state, COMMAND_OKAY, "Changed directory.");
 }
 
 void ftp_pasv(char *parameters, struct state *s_state)
