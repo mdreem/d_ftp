@@ -25,16 +25,14 @@ void ftp_retr(char *, struct state *);
 void ftp_noop(char *, struct state *);
 void ftp_debug(char *, struct state *);
 
-typedef void (*command_function) (char *, struct state*);
+typedef void (*command_function) (char *, struct state *);
 
-struct command_to_function
-{
+struct command_to_function {
     command_function function;
     char name[64];
 };
 
-static const struct command_to_function commands[] =
-{
+static const struct command_to_function commands[] = {
     {&ftp_user, "user"},
     {&ftp_pass, "pass"},
     {&ftp_acct, "acct"},

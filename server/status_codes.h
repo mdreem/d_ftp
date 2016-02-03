@@ -1,8 +1,7 @@
 #ifndef STATUS_CODES_H
 #define STATUS_CODES_H
 
-enum
-{
+enum {
     DATA_CONNECTION_ALREADY_OPEN = 125,
     FILE_STATUS_OKAY = 150,
     COMMAND_OKAY = 200,

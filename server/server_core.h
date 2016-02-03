@@ -3,8 +3,7 @@
 
 #include <arpa/inet.h>
 
-struct state
-{
+struct state {
     int client_socket;
     int server_socket;
     int passive_socket;
@@ -18,21 +17,18 @@ struct state
     int s_state;
 };
 
-enum server_state
-{
+enum server_state {
     SERVER_PASSIVE_MODE, SERVER_STANDARD_MODE
 };
 
-struct ip
-{
+struct ip {
     unsigned char d1;
     unsigned char d2;
     unsigned char d3;
     unsigned char d4;
 };
 
-struct port
-{
+struct port {
     unsigned char d1;
     unsigned char d2;
 };
@@ -41,4 +37,3 @@ void initialize(struct state *s_state);
 void destroy(struct state *s_state);
 
 #endif
-
