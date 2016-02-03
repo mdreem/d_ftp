@@ -18,9 +18,9 @@ void ftp_user(char *parameters, struct state *s_state)
     printf("==USER==\n");
 
     if (s_state->username != NULL)
-	{
-	    free(s_state->username);
-	}
+        {
+            free(s_state->username);
+        }
 
     s_state->username = (char *) malloc(sizeof(char) * (len + 1));
     memset(s_state->username, 0, len + 1);
@@ -39,9 +39,9 @@ void ftp_pass(char *parameters, struct state *s_state)
     printf("==PASS==\n");
 
     if (s_state->password != NULL)
-	{
-	    free(s_state->password);
-	}
+        {
+            free(s_state->password);
+        }
 
     s_state->password = (char *) malloc(sizeof(char) * (len + 1));
     memset(s_state->password, 0, len + 1);
@@ -82,11 +82,11 @@ void ftp_stor(char *parameters, struct state *s_state)
     dest_file = fopen(trim_whitespace(parameters), "wb");
 
     do
-	{
-	    memset(buf, 0, 256);
-	    n = read(sock, buf, 255);
-	    fwrite(buf, 1, n, dest_file);
-	}
+        {
+            memset(buf, 0, 256);
+            n = read(sock, buf, 255);
+            fwrite(buf, 1, n, dest_file);
+        }
     while (n > 0);
 
     answer(s_state, CLOSING_DATA_CONNECTION, "File transfer succesful.");
@@ -112,10 +112,10 @@ void ftp_retr(char *parameters, struct state *s_state)
     source_file = fopen(trim_whitespace(parameters), "rb");
 
     do
-	{
-	    n = fread(buf, 1, 256, source_file);
-	    write(sock, buf, n);
-	}
+        {
+            n = fread(buf, 1, 256, source_file);
+            write(sock, buf, n);
+        }
     while (n > 0);
 
     answer(s_state, CLOSING_DATA_CONNECTION, "File transfer succesful.");
@@ -139,22 +139,22 @@ void ftp_list(char *parameters, struct state *s_state)
     struct dirent *dir;
     d = opendir(s_state->current_dir);
     if (d)
-	{
-	    while ((dir = readdir(d)) != NULL)
-		{
-		    snprintf(buf, 1024, "%s\r\n", dir->d_name);
-		    write(sock, buf, strlen(buf));
-		}
+        {
+            while ((dir = readdir(d)) != NULL)
+                {
+                    snprintf(buf, 1024, "%s\r\n", dir->d_name);
+                    write(sock, buf, strlen(buf));
+                }
 
-	    closedir(d);
-	}
+            closedir(d);
+        }
 
     close(sock);
     s_state->active_socket = -1;
     s_state->passive_socket = -1;
     s_state->s_state = SERVER_STANDARD_MODE;
     answer(s_state, CLOSING_DATA_CONNECTION,
-	   "Finished sending directory listing.");
+           "Finished sending directory listing.");
 }
 
 void ftp_smnt(char *parameters, struct state *s_state)
@@ -183,7 +183,7 @@ void ftp_port(char *parameters, struct state *s_state)
     close(s_state->active_socket);
 
     sscanf(parameters, "%d,%d,%d,%d,%d,%d", &ip.d1, &ip.d2, &ip.d3, &ip.d4,
-	   &port.d1, &port.d2);
+           &port.d1, &port.d2);
 
     int ip_i, port_i;
     memcpy(&ip_i, &ip, sizeof(int));
@@ -200,9 +200,9 @@ void ftp_port(char *parameters, struct state *s_state)
     server.sin_port = port_i;
 
     if (connect(sock, (struct sockaddr *) &server, sizeof(server)) < 0)
-	{
-	    perror("connect failed. Error");
-	}
+        {
+            perror("connect failed. Error");
+        }
 
     s_state->active_socket = sock;
     answer(s_state, COMMAND_OKAY, "Port command succesful.");
@@ -250,8 +250,8 @@ void ftp_pasv(char *parameters, struct state *s_state)
     listen(s_state->passive_socket, 3);
     s_state->s_state = PASSIVE_MODE;
     snprintf(buf, 256, "Entering passive mode (%d,%d,%d,%d,%d,%d).",
-	     ip_addr.d1, ip_addr.d2, ip_addr.d3, ip_addr.d4, port.d1,
-	     port.d2);
+             ip_addr.d1, ip_addr.d2, ip_addr.d3, ip_addr.d4, port.d1,
+             port.d2);
     answer(s_state, PASSIVE_MODE, buf);
 }
 
@@ -259,9 +259,9 @@ void ftp_debug(char *parameters, struct state *s_state)
 {
     char debug_information[1024];
     sprintf(debug_information,
-	    "==STATE==\nServer Socket Descriptor: %d\nClient Socket Descriptor: %d\nUsername: %s\nPassword: %s\n",
-	    s_state->server_socket, s_state->client_socket,
-	    s_state->username, s_state->password);
+            "==STATE==\nServer Socket Descriptor: %d\nClient Socket Descriptor: %d\nUsername: %s\nPassword: %s\n",
+            s_state->server_socket, s_state->client_socket,
+            s_state->username, s_state->password);
 
     answer(s_state, COMMAND_OKAY, debug_information);
     printf("%s", debug_information);
