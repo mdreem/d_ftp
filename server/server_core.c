@@ -26,19 +26,19 @@ void initialize(struct state *s_state)
 void destroy(struct state *s_state)
 {
     if (s_state->username != NULL)
-        {
-            free(s_state->username);
-        }
+    {
+        free(s_state->username);
+    }
 
     if (s_state->password != NULL)
-        {
-            free(s_state->password);
-        }
+    {
+        free(s_state->password);
+    }
 
     if (s_state->current_dir != NULL)
-        {
-            free(s_state->current_dir);
-        }
+    {
+        free(s_state->current_dir);
+    }
 }
 
 void parse(char *message, int maxlen, struct state *s_state)
@@ -50,40 +50,40 @@ void parse(char *message, int maxlen, struct state *s_state)
     char *parameters;
 
     while (isspace(message[pos]) && pos < maxlen)
-        {
-            pos += 1;
-            command += 1;
-        }
+    {
+        pos += 1;
+        command += 1;
+    }
 
     while (isalpha(message[pos]))
-        {
-            message[pos] = tolower(message[pos]);
-            pos += +1;
-        }
+    {
+        message[pos] = tolower(message[pos]);
+        pos += +1;
+    }
     command_length = pos - command;
 
     param_pos = pos;
     while (isspace(message[pos]) && pos < maxlen)
-        {
-            pos += 1;
-            param_pos += 1;
-        }
+    {
+        pos += 1;
+        param_pos += 1;
+    }
 
     parameters = message + param_pos;
     printf("Parameters (%d + %d): \"%s\"\n", command, param_pos,
            parameters);
     for (int i = 0; i < sizeof(commands) / sizeof(commands[0]); i++)
-        {
-            int len = strlen(commands[i].name);
-            if (command + len >= maxlen)
-                continue;
+    {
+        int len = strlen(commands[i].name);
+        if (command + len >= maxlen)
+            continue;
 
-            if (strncmp(message + command, commands[i].name, len) == 0)
-                {
-                    commands[i].function(parameters, s_state);
-                    return;
-                }
+        if (strncmp(message + command, commands[i].name, len) == 0)
+        {
+            commands[i].function(parameters, s_state);
+            return;
         }
+    }
     answer(s_state, NOT_IMPLEMENTED, "Command not implemented.");
 }
 
@@ -97,9 +97,9 @@ int main(int argc, char *argv[])
     initialize(&s_state);
 
     if (argc > 1)
-        {
-            listening_port = strtol(argv[1], NULL, 10);
-        }
+    {
+        listening_port = strtol(argv[1], NULL, 10);
+    }
 
     socket_desc = initialize_socket(listening_port);
 
@@ -111,10 +111,10 @@ int main(int argc, char *argv[])
         accept(socket_desc, (struct sockaddr *) &client,
                (socklen_t *) & c);
     if (new_socket < 0)
-        {
-            perror("accept failed");
-            exit(1);
-        }
+    {
+        perror("accept failed");
+        exit(1);
+    }
 
     puts("Connection accepted");
 
@@ -138,20 +138,20 @@ int main(int argc, char *argv[])
     answer(&s_state, COMMAND_OKAY, msg_buf);
 
     while (connected)
+    {
+        memset(buffer, 0, 256);
+        int n = read(new_socket, buffer, 255);
+
+        if (n < 0)
         {
-            memset(buffer, 0, 256);
-            int n = read(new_socket, buffer, 255);
-
-            if (n < 0)
-                {
-                    perror("error reading from socket");
-                }
-
-            printf("Länge: (%d; %d)\n", n, strlen(buffer));
-            printf("Command: \"%s\"\n", trim_whitespace(buffer));
-
-            parse(buffer, n, &s_state);
+            perror("error reading from socket");
         }
+
+        printf("Länge: (%d; %d)\n", n, strlen(buffer));
+        printf("Command: \"%s\"\n", trim_whitespace(buffer));
+
+        parse(buffer, n, &s_state);
+    }
 
     printf("Exiting connection-loop.");
 

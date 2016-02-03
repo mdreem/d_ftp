@@ -18,9 +18,9 @@ void ftp_user(char *parameters, struct state *s_state)
     printf("==USER==\n");
 
     if (s_state->username != NULL)
-        {
-            free(s_state->username);
-        }
+    {
+        free(s_state->username);
+    }
 
     s_state->username = (char *) malloc(sizeof(char) * (len + 1));
     memset(s_state->username, 0, len + 1);
@@ -39,9 +39,9 @@ void ftp_pass(char *parameters, struct state *s_state)
     printf("==PASS==\n");
 
     if (s_state->password != NULL)
-        {
-            free(s_state->password);
-        }
+    {
+        free(s_state->password);
+    }
 
     s_state->password = (char *) malloc(sizeof(char) * (len + 1));
     memset(s_state->password, 0, len + 1);
@@ -82,11 +82,11 @@ void ftp_stor(char *parameters, struct state *s_state)
     dest_file = fopen(trim_whitespace(parameters), "wb");
 
     do
-        {
-            memset(buf, 0, 256);
-            n = read(sock, buf, 255);
-            fwrite(buf, 1, n, dest_file);
-        }
+    {
+        memset(buf, 0, 256);
+        n = read(sock, buf, 255);
+        fwrite(buf, 1, n, dest_file);
+    }
     while (n > 0);
 
     answer(s_state, CLOSING_DATA_CONNECTION, "File transfer succesful.");
@@ -112,10 +112,10 @@ void ftp_retr(char *parameters, struct state *s_state)
     source_file = fopen(trim_whitespace(parameters), "rb");
 
     do
-        {
-            n = fread(buf, 1, 256, source_file);
-            write(sock, buf, n);
-        }
+    {
+        n = fread(buf, 1, 256, source_file);
+        write(sock, buf, n);
+    }
     while (n > 0);
 
     answer(s_state, CLOSING_DATA_CONNECTION, "File transfer succesful.");
@@ -139,15 +139,15 @@ void ftp_list(char *parameters, struct state *s_state)
     struct dirent *dir;
     d = opendir(s_state->current_dir);
     if (d)
+    {
+        while ((dir = readdir(d)) != NULL)
         {
-            while ((dir = readdir(d)) != NULL)
-                {
-                    snprintf(buf, 1024, "%s\r\n", dir->d_name);
-                    write(sock, buf, strlen(buf));
-                }
-
-            closedir(d);
+            snprintf(buf, 1024, "%s\r\n", dir->d_name);
+            write(sock, buf, strlen(buf));
         }
+
+        closedir(d);
+    }
 
     close(sock);
     s_state->active_socket = -1;
@@ -200,9 +200,9 @@ void ftp_port(char *parameters, struct state *s_state)
     server.sin_port = port_i;
 
     if (connect(sock, (struct sockaddr *) &server, sizeof(server)) < 0)
-        {
-            perror("connect failed. Error");
-        }
+    {
+        perror("connect failed. Error");
+    }
 
     s_state->active_socket = sock;
     answer(s_state, COMMAND_OKAY, "Port command succesful.");
