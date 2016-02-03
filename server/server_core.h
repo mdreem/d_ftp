@@ -12,7 +12,7 @@ struct state {
     char *username;
     char *password;
 
-    char *current_dir;
+    char *base_dir;
 
     int s_state;
 };

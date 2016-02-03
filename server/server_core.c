@@ -19,7 +19,7 @@ void initialize(struct state *s_state)
     s_state->active_socket = 0;
     s_state->username = NULL;
     s_state->password = NULL;
-    s_state->current_dir = NULL;
+    s_state->base_dir = NULL;
     s_state->s_state = SERVER_STANDARD_MODE;
 }
 
@@ -35,9 +35,9 @@ void destroy(struct state *s_state)
         free(s_state->password);
     }
 
-    if (s_state->current_dir != NULL)
+    if (s_state->base_dir != NULL)
     {
-        free(s_state->current_dir);
+        free(s_state->base_dir);
     }
 }
 
@@ -129,8 +129,8 @@ int main(int argc, char *argv[])
     s_state.client_socket = new_socket;
 
     char *current_dir = "./files";
-    s_state.current_dir = malloc(sizeof(char) * (strlen(current_dir) + 1));
-    memcpy(s_state.current_dir, current_dir, sizeof(current_dir));
+    s_state.base_dir = malloc(sizeof(char) * (strlen(current_dir) + 1));
+    memcpy(s_state.base_dir, current_dir, sizeof(current_dir));
 
     sprintf(msg_buf, "Hello %s:%d (%x)", client_ip, client_port,
             client.sin_addr);

@@ -78,7 +78,7 @@ void ftp_stor(char *parameters, struct state *s_state)
 
     sock = get_socket(s_state);
 
-    chdir(s_state->current_dir);
+    chdir(s_state->base_dir);
     dest_file = fopen(trim_whitespace(parameters), "wb");
 
     do
@@ -108,7 +108,7 @@ void ftp_retr(char *parameters, struct state *s_state)
 
     sock = get_socket(s_state);
 
-    chdir(s_state->current_dir);
+    chdir(s_state->base_dir);
     source_file = fopen(trim_whitespace(parameters), "rb");
 
     do
@@ -131,13 +131,13 @@ void ftp_list(char *parameters, struct state *s_state)
     int sock;
     answer(s_state, FILE_STATUS_OKAY, "Sending directory listing.");
 
-    printf("Sending contents of %s\n", s_state->current_dir);
+    printf("Sending contents of %s\n", s_state->base_dir);
 
     sock = get_socket(s_state);
 
     DIR *d;
     struct dirent *dir;
-    d = opendir(s_state->current_dir);
+    d = opendir(s_state->base_dir);
     if (d)
     {
         while ((dir = readdir(d)) != NULL)
