@@ -1,14 +1,9 @@
-server: server_core.o commands.o tools.o
-	gcc -o server server_core.o commands.o tools.o
+CC=gcc
+CFLAGS=-I./include -ansi -g -std=gnu11
+LDFLAGS=-lpam -lpam_misc
 
-server_core.o: server_core.c
-	gcc -g3 -c server_core.c
-
-commands.o: commands.c
-	gcc -g3 -c commands.c
-
-tools.o: tools.c
-	gcc -g3 -c tools.c
+server: server_core.o commands.o tools.o auth.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 clean:
-	rm -rf server_core.o commands.o tools.o server
+	rm -rf server_core.o commands.o tools.o auth.o server
