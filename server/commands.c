@@ -8,6 +8,7 @@
 #include "tools.h"
 #include "commands.h"
 #include "status_codes.h"
+#include "auth.h"
 
 void ftp_user(char *parameters, struct state *s_state)
 {
@@ -47,8 +48,19 @@ void ftp_pass(char *parameters, struct state *s_state)
     memset(s_state->password, 0, len + 1);
     strncpy(s_state->password, password, len);
 
-    snprintf(msg_buf, 256, "Given: %s", s_state->password);
-    answer(s_state, USER_LOGGED_IN, msg_buf);
+
+    int res = authenticate(s_state->username, s_state->password);
+
+    if (res == DFTP_AUTH_SUCCESS)
+    {
+        snprintf(msg_buf, 256, "Logged in. given: %s", s_state->password);
+        answer(s_state, USER_LOGGED_IN, msg_buf);
+    }
+    else
+    {
+        snprintf(msg_buf, 256, "Not logged in. Given: %s", s_state->password);
+        answer(s_state, NOT_LOGGED_IN, msg_buf);
+    }
 }
 
 void ftp_acct(char *parameters, struct state *s_state)
