@@ -4,3 +4,8 @@ compiler: clang
 script:
   ./build.sh
 
+addons:
+  apt:
+    sources:
+      libpam0g
+      libpam-modules
