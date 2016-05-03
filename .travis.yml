@@ -7,5 +7,5 @@ script:
 addons:
   apt:
     sources:
-      libpam0g
-      libpam-modules
+      - libpam0g
+      - libpam-modules
