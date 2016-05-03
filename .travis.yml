@@ -1,11 +1,10 @@
 language: c
-compiler: clang
+compiler: gcc
 
 addons:
   apt:
     packages:
       - libpam0g
-      - libpam-modules
       - libpam0g-dev
 
 
