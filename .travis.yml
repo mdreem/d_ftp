@@ -9,3 +9,5 @@ addons:
     sources:
       - libpam0g
       - libpam-modules
+      - libpam-dev
+
