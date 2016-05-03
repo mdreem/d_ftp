@@ -1,13 +1,13 @@
 language: c
 compiler: clang
 
-script:
-  ./build.sh
-
 addons:
   apt:
-    sources:
+    packages:
       - libpam0g
       - libpam-modules
       - libpam0g-dev
 
+
+script:
+  ./build.sh
