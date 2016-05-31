@@ -70,7 +70,7 @@ char *trim_whitespace(char *string_in)
     while (isspace(str_end[0]) || isnewline(str_end[0]))
         str_end--;
 
-    *(str_end + 1) = 0;
+    *(str_end + sizeof(char)) = 0;
 
     return string_in;
 }
