@@ -6,6 +6,7 @@ addons:
     packages:
       - libpam0g
       - libpam0g-dev
+      - cmocka
 
 script:
   ./build.sh
