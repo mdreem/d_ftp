@@ -1,14 +1,11 @@
 language: c
 compiler: gcc
-sudo: required
-dist: trusty
 
 addons:
   apt:
     packages:
       - libpam0g
       - libpam0g-dev
-
 
 script:
   ./build.sh
