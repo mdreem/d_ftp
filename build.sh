@@ -1,4 +1,5 @@
 #!/bin/bash
 
-make all
-server/tests
+make tests_server
+server/test_auth
+server/test_tools

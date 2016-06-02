@@ -2,9 +2,9 @@ all: server
 
 clean: clean_server
 
-.PHONY: server
+.PHONY: tests_server
 
-server:
+tests_server:
 	$(MAKE) -C server tests
 
 clean_server:
